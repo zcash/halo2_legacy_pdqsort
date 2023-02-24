@@ -8,9 +8,9 @@
 
 // ignore-tidy-undocumented-unsafe
 
-use crate::cmp;
-use crate::mem::{self, MaybeUninit};
-use crate::ptr;
+use core::cmp;
+use core::mem;
+use core::ptr;
 
 /// When dropped, copies from `src` into `dest`.
 struct CopyOnDrop<T> {
@@ -180,7 +180,6 @@ where
 
 /// Sorts `v` using heapsort, which guarantees *O*(*n* \* log(*n*)) worst-case.
 #[cold]
-#[unstable(feature = "sort_internals", reason = "internal to sort module", issue = "none")]
 pub fn heapsort<T, F>(v: &mut [T], mut is_less: F)
 where
     F: FnMut(&T, &T) -> bool,
@@ -253,7 +252,7 @@ where
     let mut block_l = BLOCK;
     let mut start_l = ptr::null_mut();
     let mut end_l = ptr::null_mut();
-    let mut offsets_l = [MaybeUninit::<u8>::uninit(); BLOCK];
+    let mut offsets_l = [0u8; BLOCK];
 
     // The current block on the right side (from `r.sub(block_r)` to `r`).
     // SAFETY: The documentation for .add() specifically mention that `vec.as_ptr().add(vec.len())` is always safe`
@@ -261,7 +260,7 @@ where
     let mut block_r = BLOCK;
     let mut start_r = ptr::null_mut();
     let mut end_r = ptr::null_mut();
-    let mut offsets_r = [MaybeUninit::<u8>::uninit(); BLOCK];
+    let mut offsets_r = [0u8; BLOCK];
 
     // FIXME: When we get VLAs, try creating one array of length `min(v.len(), 2 * BLOCK)` rather
     // than two fixed-size arrays of length `BLOCK`. VLAs might be more cache-efficient.
@@ -300,8 +299,8 @@ where
 
         if start_l == end_l {
             // Trace `block_l` elements from the left side.
-            start_l = MaybeUninit::slice_as_mut_ptr(&mut offsets_l);
-            end_l = MaybeUninit::slice_as_mut_ptr(&mut offsets_l);
+            start_l = offsets_l.as_mut_ptr();
+            end_l = offsets_l.as_mut_ptr();
             let mut elem = l;
 
             for i in 0..block_l {
@@ -326,8 +325,8 @@ where
 
         if start_r == end_r {
             // Trace `block_r` elements from the right side.
-            start_r = MaybeUninit::slice_as_mut_ptr(&mut offsets_r);
-            end_r = MaybeUninit::slice_as_mut_ptr(&mut offsets_r);
+            start_r = offsets_r.as_mut_ptr();
+            end_r = offsets_r.as_mut_ptr();
             let mut elem = r;
 
             for i in 0..block_r {
