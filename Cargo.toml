@@ -1,6 +1,6 @@
 [package]
 name = "halo2_legacy_pdqsort"
-version = "0.1.0"
+version = "0.0.0"
 authors = [
     "Daira Emma Hopwood <daira@jacaranda.org>",
     "Sean Bowe <sean@electriccoin.co>",
