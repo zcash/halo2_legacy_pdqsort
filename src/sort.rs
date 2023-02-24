@@ -1,3 +1,6 @@
+//! Copy of https://github.com/rust-lang/rust/blob/1.56.1/library/core/src/slice/sort.rs
+//! "MODIFIED:" marks places that have been modified from the original.
+//!
 //! Slice sorting
 //!
 //! This module contains a sorting algorithm based on Orson Peters' pattern-defeating quicksort,
@@ -589,13 +592,9 @@ fn break_patterns<T>(v: &mut [T]) {
             random ^= random << 5;
             random
         };
-        let mut gen_usize = || {
-            if usize::BITS <= 32 {
-                gen_u32() as usize
-            } else {
-                (((gen_u32() as u64) << 32) | (gen_u32() as u64)) as usize
-            }
-        };
+        // MODIFIED: Use two calls to `gen_u32` on all platforms, to make the algorithm deterministic.
+        // It is correct to cast to usize even on 32-bit platforms, because (modulus - 1) fits in usize.
+        let mut gen_usize = || (((gen_u32() as u64) << 32) | (gen_u32() as u64)) as usize;
 
         // Take random numbers modulo this number.
         // The number fits into `usize` because `len` is not greater than `isize::MAX`.
