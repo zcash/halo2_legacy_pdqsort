@@ -4,13 +4,16 @@
 #[test]
 #[cfg(not(target_arch = "wasm32"))]
 fn sort_unstable() {
-    use core::cmp::Ordering::{Equal, Greater, Less};
-    // MODIFIED: test heapsort from this module, not the stdlib one (which is internal anyway).
-    use crate::sort::heapsort;
+    // MODIFIED: test the implementations in this crate.
+    use crate::sort::{heapsort, quicksort};
     use rand::{rngs::StdRng, seq::SliceRandom, Rng, SeedableRng};
 
     // Miri is too slow (but still need to `chain` to make the types match)
-    let lens = if cfg!(miri) { (2..20).chain(0..0) } else { (2..25).chain(500..510) };
+    let lens = if cfg!(miri) {
+        (2..20).chain(0..0)
+    } else {
+        (2..25).chain(500..510)
+    };
     let rounds = if cfg!(miri) { 1 } else { 100 };
 
     let mut v = [0; 600];
@@ -27,19 +30,19 @@ fn sort_unstable() {
                     v[i] = rng.gen::<i32>() % modulus;
                 }
 
-                // Sort in default order.
-                tmp.copy_from_slice(v);
-                tmp.sort_unstable();
-                assert!(tmp.windows(2).all(|w| w[0] <= w[1]));
+                // MODIFIED: "Sort in default order" test removed since the code
+                // in this crate requires a specific order.
 
                 // Sort in ascending order.
                 tmp.copy_from_slice(v);
-                tmp.sort_unstable_by(|a, b| a.cmp(b));
+                // MODIFIED: test quicksort directly rather than via the slice API.
+                quicksort(tmp, |a, b| a < b);
                 assert!(tmp.windows(2).all(|w| w[0] <= w[1]));
 
                 // Sort in descending order.
                 tmp.copy_from_slice(v);
-                tmp.sort_unstable_by(|a, b| b.cmp(a));
+                // MODIFIED: test quicksort directly rather than via the slice API.
+                quicksort(tmp, |a, b| a > b);
                 assert!(tmp.windows(2).all(|w| w[0] >= w[1]));
 
                 // Test heapsort using `<` operator.
@@ -60,18 +63,22 @@ fn sort_unstable() {
     for i in 0..v.len() {
         v[i] = i as i32;
     }
-    v.sort_unstable_by(|_, _| *[Less, Equal, Greater].choose(&mut rng).unwrap());
-    v.sort_unstable();
+
+    // MODIFIED: test quicksort directly rather than via the slice API.
+    quicksort(&mut v, |_, _| *[true, false].choose(&mut rng).unwrap());
+    quicksort(&mut v, |a, b| a < b);
     for i in 0..v.len() {
         assert_eq!(v[i], i as i32);
     }
 
     // Should not panic.
-    [0i32; 0].sort_unstable();
-    [(); 10].sort_unstable();
-    [(); 100].sort_unstable();
+    // MODIFIED: test quicksort directly rather than via the slice API.
+    quicksort(&mut [0i32; 0], |a, b| a < b);
+    quicksort(&mut [(); 10], |a, b| a < b);
+    quicksort(&mut [(); 100], |a, b| a < b);
 
     let mut v = [0xDEADBEEFu64];
-    v.sort_unstable();
+    // MODIFIED: test quicksort directly rather than via the slice API.
+    quicksort(&mut v, |a, b| a < b);
     assert!(v == [0xDEADBEEF]);
 }
