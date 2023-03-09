@@ -1,6 +1,9 @@
 pub mod sort;
 
 #[cfg(test)]
+mod rust_slice;
+
+#[cfg(test)]
 mod tests {
     use crate::sort;
 
