@@ -1,3 +1,7 @@
+//! # halo2_legacy_pdqsort
+
+#![deny(unsafe_code)]
+
 pub mod sort;
 
 #[cfg(test)]
